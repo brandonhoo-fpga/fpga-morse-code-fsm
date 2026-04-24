@@ -4,6 +4,16 @@ A hardware-level embedded system that decodes manual Morse code inputs in real-t
 
 **Note:** This was my very first independent FPGA project. It serves as a foundational exploration of Finite State Machines (FSM), real-time user input measurement, shift-register decoding, and serial communication.
 
+## 🎥 Hardware Demonstration
+
+https://github.com/user-attachments/assets/25b3a4b6-9bd3-4f26-8a23-6d955d27c8ae
+
+This demonstration showcases the dual-layer data path and real-time FSM timing thresholds. The test sequence includes:
+1. **Letters `S` & `O`:** Demonstrates basic dot/dash timing calibration and the live terminal echo.
+2. **Word `FPGA`:** Verifies continuous letter decoding, spacing, and memory accumulation.
+3. **Sentence `HI TEST`:** Demonstrates the >2s "Word Space" threshold and proves the FSM can successfully buffer and transmit multiple words.
+4. **Error Correction (`BACK`):** During the letter `K`, an intentional error is made (`-..` instead of `-.-`). The sequence highlights the hardware backspace switch shifting the buffer backwards, deleting the incorrect dot, and replacing it with a dash to lock in the right character.
+
 ## 🔄 Background & Architecture Redesign
 This project is a hardware-level reimagining of a final open-ended assignment from a previous microcontroller lab class. 
 
