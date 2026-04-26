@@ -12,7 +12,7 @@ module Morse_FSM (
     input           i_Switch_2,             // Submit buffered sentence
     input           i_Switch_3,             // Backspace last buffer entry
     input           i_UART_Active,          // Set High when UART is currently transmitting 
-    input           i_UART_Done,            // Pulses Highwhen UART finishes byte 
+    input           i_UART_Done,            // Pulses High when UART finishes byte 
     output reg[7:0] o_UART_Byte,            // Data loaded into UART transmitter
     output reg      o_UART_DV,              // Data Valid pulse to trigger UART transmission
     output reg      o_DOT_LED = 1'b0,       // Set High when Dot timing threshold is passed
@@ -30,10 +30,9 @@ localparam c_THRESHOLD_WORD = 50000000; // 50,000,000 cycles = 2s
 localparam IDLE = 3'b000;
 localparam MEASURE = 3'b001;
 localparam EVALUATE = 3'b010;
-localparam APPEND_LF = 3'b011;
-localparam TRANSMIT = 3'b100;
-localparam ECHO_CHAR = 3'b101;
-localparam ECHO_WAIT = 3'b110;
+localparam ECHO_WAIT = 3'b011;
+localparam APPEND_LF = 3'b100;
+localparam TRANSMIT = 3'b101;
 
 // Sub-state Machine for UART Transmission
 localparam TX_CHECK_INDEX = 2'b00;
@@ -48,19 +47,19 @@ reg[1:0] r_TX_State = 0;
 reg[4:0] letter_buffer = 5'b00001; // 5-bit Morse buffer with a framing bit (Leading 1)
 reg[$clog2(c_THRESHOLD_WORD)-1:0] r_COUNT = 0; // Sized register to safely hold maximum word count
 
-// Synchronized inputs t detect edge transitions
+// Synchronized inputs to detect edge transitions
 reg r_Switch_1 = 1'b0;
 reg r_Switch_2 = 1'b0;
 reg r_Switch_3 = 1'b0;
 
-// 32-Byte RAM block for batch sentence submission
-// can only hold 32 characters which includes spaces and next lines
+// 64-Byte RAM block for batch sentence submission
+// can only hold 64 characters, which includes spaces and next lines
 // write and read index are used for transmitting characters to UART
-reg[7:0] sentence_memory [0:31];
+reg[7:0] sentence_memory [0:63];
 reg[5:0] write_index = 6'd2;
 reg[5:0] read_index = 6'd0;
 
-// Wire to recieve decoded ASCII character from Letter_Convert
+// Wire to receive decoded ASCII character from Letter_Convert
 wire[7:0] w_decoded_ascii; 
 
 // Combinational LUT to map current 5-bit buffer to ASCII hex value
@@ -69,7 +68,7 @@ Letter_Convert Letter_Inst (
     .ascii_hex(w_decoded_ascii)
 );
 
-// Pre-loaded to start of the memory block with
+// Pre-loaded to the start of the memory block with
 // 8'h0D = Carriage Return
 // 8'h0A = Line Feed
 initial
@@ -115,7 +114,8 @@ begin
             begin
                 letter_buffer <= {1'b0, letter_buffer[4:1]};
                 o_UART_Byte <= 8'h08;
-                r_SM_Main <= ECHO_CHAR;
+                o_UART_DV <= 1'b1;
+                r_SM_Main <= ECHO_WAIT;
             end
             else
                 r_SM_Main <= IDLE;
@@ -124,7 +124,7 @@ begin
         MEASURE :
         begin
             // Memory protection: Abort to IDLE if RAM buffer is full
-            if (write_index >= 6'd29)
+            if (write_index >= 6'd60)
                 r_SM_Main <= IDLE;
             // Switch released: Move to start evaluation
             else if(r_Switch_1 == 1'b1 && i_Switch_1 == 1'b0)
@@ -148,8 +148,10 @@ begin
 
         EVALUATE :
         begin
+            // Trigger UART to Echo Character
+            o_UART_DV <= 1'b1;
             // Categorized the stored duration and shift appropriate bit into the buffer
-            // Also queues the live-echo character for terminal
+            // Also queues the live-echo character for the terminal
             if(r_COUNT < c_THRESHOLD_DASH)
             begin
                 letter_buffer <= {letter_buffer[3:0], 1'b0};
@@ -175,13 +177,6 @@ begin
                 o_UART_Byte <= 8'h20; // 'Space'
             end
             r_SM_Main <= ECHO_CHAR;
-        end
-
-        ECHO_CHAR :
-        begin
-            // Trigger UART to send live-feedback character
-            o_UART_DV <= 1'b1;
-            r_SM_Main <= ECHO_WAIT;
         end
 
         ECHO_WAIT :
