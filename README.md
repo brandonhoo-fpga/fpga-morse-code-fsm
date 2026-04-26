@@ -1,7 +1,7 @@
 # FPGA Morse Code Decoder & UART Transmitter
 A hardware-level embedded system that decodes manual Morse code inputs in real-time, translates them into standard ASCII characters, and transmits the complete sentences to a PC via UART communication.
  
-**Note:** This was my very first independent FPGA project. It serves as a foundational exploration of Finite State Machines (FSM), real-time user input measurement, shift-register decoding, and serial communication.
+**Note:** This was my very first independent FPGA project. It covers Finite State Machines (FSM), real-time user input measurement, shift-register decoding, and serial communication.
  
 ## 🎥 Hardware Demonstration
 https://github.com/user-attachments/assets/25b3a4b6-9bd3-4f26-8a23-6d955d27c8ae
@@ -12,11 +12,11 @@ This demonstration showcases the dual-layer data path and real-time FSM timing t
 3. **Sentence `HI TEST`:** Demonstrates the >2s "Word Space" threshold and proves the FSM can successfully buffer and transmit multiple words.
 4. **Error Correction (`BACK`):** During the letter `K`, an intentional error is made (`-..` instead of `-.-`). The sequence highlights the hardware backspace switch shifting the buffer backwards, deleting the incorrect dot, and replacing it with a dash to lock in the right character.
 ## 🔄 Background & Architecture Redesign
-This project is a hardware-level reimagining of a final open-ended assignment from a previous microcontroller lab class.
+This project rebuilds, in hardware, a final open-ended assignment from a previous microcontroller lab class.
  
 For that original assignment, my team and I built a Morse Code interface based on distinct "click" and "hold" durations. While we successfully implemented the prototype using C++ and Assembly, the architecture was inherently limited. The software overhead, interrupt handling, and loop execution times made it incredibly difficult to accurately measure the precise timing of the user's manual inputs, leading to buggy decoding.
  
-When looking for my first independent FPGA project, I rebuilt this system entirely in hardware using a Verilog Finite State Machine (FSM). By utilizing the 25MHz clock of the FPGA, the input measurement became **100% deterministic**, completely eliminating the lag of the original microcontroller version. Every clock cycle is exactly $40\text{ns}$, allowing for flawless real-time decoding.
+When looking for my first independent FPGA project, I rebuilt this system entirely in hardware using a Verilog Finite State Machine (FSM). By utilizing the 25MHz clock of the FPGA, the input measurement became **100% deterministic**, completely eliminating the lag of the original microcontroller version. Every clock cycle is exactly $40\text{ns}$, allowing for consistent real-time decoding.
  
 ## ⚙️ How It Works (System Architecture)
 The system relies on a central FSM interacting with utility modules (Debouncers, UART TX) through a dual-layer data path.
@@ -39,7 +39,7 @@ The system relies on a central FSM interacting with utility modules (Debouncers,
 * **Synthesis:** Yosys, NextPNR, and IceStorm (Open-source CLI flow)
 * **Baud Rate:** 115200 (217 clocks per bit @ 25MHz)
 ## 🚀 Lessons Learned
-As my first independent project into FPGA development, this project fundamentally shifted how I approach system design. It taught me how to manage concurrent hardware logic, handle custom memory buffers, and interface with standard communication protocols.
+As my first independent FPGA project, this changed how I approach system design. It taught me how to manage concurrent hardware logic, handle custom memory buffers, and interface with standard communication protocols.
  
-I specifically learned how to manage **Synchronous RAM constraints**; since you cannot write to two memory addresses in a single clock cycle, I implemented an intermediate FSM state to handle the sequential injection of Carriage Return (`0x0D`) and Line Feed (`0x0A`) characters into the data stream. Most importantly, it proved that strict timing problems are best solved by removing the software execution layer entirely and letting pure hardware logic do the work.
+I specifically learned how to manage **Synchronous RAM constraints**; since you cannot write to two memory addresses in a single clock cycle, I implemented an intermediate FSM state to handle the sequential injection of Carriage Return (`0x0D`) and Line Feed (`0x0A`) characters into the data stream. It also showed me that timing-critical problems get a lot easier when you drop the software layer entirely and do the work in hardware.
  
