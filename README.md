@@ -4,7 +4,7 @@ A hardware-level embedded system that decodes manual Morse code inputs in real-t
 **Note:** This was my very first independent FPGA project. It covers Finite State Machines (FSM), real-time user input measurement, shift-register decoding, and serial communication.
  
 ## Hardware Demonstration
-https://github.com/user-attachments/assets/25b3a4b6-9bd3-4f26-8a23-6d955d27c8ae
+https://github.com/user-attachments/assets/8246992a-d292-49f2-bf58-92e1be09cc22
  
 This demonstration showcases the dual-layer data path and real-time FSM timing thresholds. The test sequence includes:
 1. **Letters `S` & `O`:** Demonstrates basic dot/dash timing calibration and the live terminal echo.
